@@ -1,10 +1,16 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
+import { UdpController } from './utility/udpController';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
+
+//const udp = new UdpController();
+//ipcMain.on("request-udp-controller", event => {
+//  event.returnValue = udp;
+//});
 
 const createWindow = () => {
   // Create the browser window.

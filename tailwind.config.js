@@ -10,7 +10,7 @@ module.exports = {
   daisyui: {
     themes: [
       {
-        mytheme: {
+        light: {
           "primary": "#00356b",
           "secondary": "#286dc0",
           "accent": "#5f712d",
@@ -23,6 +23,10 @@ module.exports = {
           "error": "#e23832",
         },
       },
+      "dark",
+      "cupcake",
+      "synthwave",
+      "valentine",
     ],
   },
   plugins: [

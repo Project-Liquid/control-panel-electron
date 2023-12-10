@@ -24,16 +24,23 @@ interface SensorProps {
     readout: string,
     label: string,
     supLabel: string,
+    big?: boolean,
 }
-export function Sensor({ pct, color, readout, label, supLabel }: SensorProps) {
+export function Sensor({ pct, color, readout, label, supLabel, big = false }: SensorProps) {
     return <div className="p-4 flex justify-between items-center">
         <div className="flex flex-col justify-between">
-            <div className="uppercase text-xs text-neutral">{supLabel}</div>
+            <div className="uppercase text-xs text-neutral-content">{supLabel}</div>
             <div className="text-lg">{label}</div>
         </div>
-        <div className="radial-progress border-4" style={{ "--value": pct, "--size": "6rem", "color": color } as CSSProperties}>
-            <span className="text-base-content">{readout}</span>
-        </div>
+        {big ?
+            <div className="radial-progress border-4 border-base-200" style={{ "--value": pct, "--size": "6rem", "color": color } as CSSProperties}>
+                <span className="text-base-content">{readout}</span>
+            </div> :
+            <div>
+                <span className="text-base-content mr-3 text-lg">{readout}</span>
+                <div className="radial-progress border-4 border-base-200" style={{ "--value": pct, "--size": "3rem", "color": color, "--thickness": "0.4rem" } as CSSProperties} />
+            </div>
+        }
     </div>;
 }
 
