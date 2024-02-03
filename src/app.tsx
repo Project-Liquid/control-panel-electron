@@ -11,6 +11,19 @@ import cn from "classnames";
 import CustomView from "./views/customview";
 import { JSONToLayout } from "./utility/layout";
 
+// UDP (renderer side)
+//import { UdpIPC } from './utility/udpIPC';
+
+//declare global {
+//    interface Window {
+//        udp: UdpIPC
+//    }
+//}
+
+//window.udp.startHandshake();
+//window.udp.addListener(console.log);
+
+// JSON start code for the custom ui view
 const defaultJson = `{
 "name": "Engine Test 01",
 "inputs": {
@@ -65,8 +78,8 @@ function App() {
                 </Modal>
             }>
             <Routes>
-                <Route path="/" element={<Combined />} />
-                <Route path="/control" element={<Control />} />
+                <Route path="/combined" element={<Combined />} />
+                <Route path="/" element={<Control />} />
                 <Route path="/telemetry" element={<Telemetry />} />
                 <Route path="/custom" element={<CustomView layout={validated.kind === "success" ? validated.result : null} />} />
             </Routes>

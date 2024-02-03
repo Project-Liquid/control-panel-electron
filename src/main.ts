@@ -7,16 +7,51 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-//const udp = new UdpController();
-//ipcMain.on("request-udp-controller", event => {
-//  event.returnValue = udp;
-//});
+const udp = new UdpController();
+const processListenerRemovers: Record<number, () => void> = {};
+ipcMain.on("udp-ipcregister", event => {
+  processListenerRemovers[event.processId] = udp.addListener(message => {
+    console.log(processListenerRemovers);
+    event.reply("udp-receive", message);
+  });
+});
+ipcMain.on("udp-send", (_event, command: string) => {
+  udp.send(command);
+});
+ipcMain.on("udp-start-handshake", (event, interval: number) => {
+  udp.startHandshake(interval, () => {
+    event.reply("udp-handshake-connected");
+  });
+});
+ipcMain.on("udp-get-computer-info", event => {
+  event.returnValue = udp.computerAddress;
+});
+ipcMain.on("udp-get-teensy-info", event => {
+  event.returnValue = udp.teensyRemoteInfo;
+});
+udp.addListener(console.log);
+//setTimeout(() => {
+//  udp.socket.emit("message", Buffer.from("HSK"), {
+//    address: "169.254.44.72",
+//    family: "IPv4",
+//    port: 5190,
+//    size: 0,
+//  });
+//}, 2000);
+//setTimeout(() => {
+//  udp.socket.emit("message", Buffer.from("PAR88"), {
+//    address: "169.254.44.72",
+//    family: "IPv4",
+//    port: 5190,
+//    size: 0,
+//  });
+//}, 5000);
 
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 900,
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 20, y: 20 },
     webPreferences: {
@@ -30,6 +65,15 @@ const createWindow = () => {
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
+
+  mainWindow.on("close", () => {
+    // Unregister the closed window from receiving udp messages
+    const pid = mainWindow.webContents.getProcessId();
+    if (pid in processListenerRemovers) {
+      processListenerRemovers[pid]();
+      delete processListenerRemovers[pid];
+    }
+  });
 
   // Open the DevTools.
   //mainWindow.webContents.openDevTools();
