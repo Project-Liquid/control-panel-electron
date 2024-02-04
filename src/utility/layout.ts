@@ -9,12 +9,12 @@ export default interface Layout {
     recorder: boolean,
 }
 
-interface LayoutParseResult {
+export interface LayoutParseResult {
     kind: "success",
     result: Layout,
 }
 
-interface LayoutParseError {
+export interface LayoutParseError {
     kind: "syntax" | "validation",
     error: string,
 }
