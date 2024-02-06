@@ -1,90 +1,72 @@
-import React, { ReactNode, useState } from "react";
+// React & co
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
+import { HashRouter, Routes, Route } from "react-router-dom";
+
+// Components
 import Nav from "./components/nav";
-import { HashRouter, Routes, Route, Link } from "react-router-dom";
-import { IcnCombined, IcnControl, IcnCustom, IcnTelemetry } from "./components/icons";
-import Modal from "./components/modal";
-import Combined from "./views/combined";
-import Telemetry from "./views/telemetry";
-import Control from "./views/control";
-import cn from "classnames";
+
+// Views
+import Debug from "./views/debug";
 import CustomView from "./views/customview";
-import { JSONToLayout } from "./utility/layout";
 
-// UDP (renderer side)
-//import { UdpIPC } from './utility/udpIPC';
-
-//declare global {
-//    interface Window {
-//        udp: UdpIPC
-//    }
-//}
-
-//window.udp.startHandshake();
-//window.udp.addListener(console.log);
+// Utilities
+import { LayoutStoreContext } from "./context/jsonLayouts";
+import { TeensyContext, useTeensyStateReceiver } from "./context/teensyContext";
 
 // JSON start code for the custom ui view
-const defaultJson = `{
-"name": "Engine Test 01",
+// TODO: save these using electron-store
+const defaultLayout = {
+    "ASI Test 01": `{
 "inputs": {
-    "0": {"name": "Ethane tank", "type": "pres"},
-    "1": {"name": "N2O tank", "type": "pres"},
-    "2": {"name": "Ethane run", "type": "pres"},
-    "3": {"name": "N2O run", "type": "pres"},
-    "4": {"name": "Injector", "type": "temp"}
+    "P0": {"name": "N2O inlet", "type": "pres"},
+    "P1": {"name": "N2O tank", "type": "pres"},
+    "P2": {"name": "Ethane tank", "type": "pres"},
+    "P3": {"name": "Ethane inlet run", "type": "pres"},
+    "P4": {"name": "Chamber", "type": "pres"},
+    "T0": {"name": "Thermocouple 0", "type": "temp"},
+    "T1": {"name": "Thermocouple 1", "type": "temp"},
+    "T2": {"name": "Thermocouple 2", "type": "temp"}
 },
 "actions": {
-    "Abort": "ABO",
-    "Seal tanks": "PDW 6:1 7:1",
-    "Run": "PDW 8:1 9:1"
-}
-}`;
-
-interface MenuLinkProps {
-    to: string,
-    children: ReactNode,
-    icon: ReactNode,
-}
-function MenuLink({ to, icon, children }: MenuLinkProps) {
-    return <Link to={to}>{icon} <span className="ml-2">{children}</span></Link>
-}
+    "OFF": "VDW001020304050;SPK0;",
+    "ARM": "VDW10410030;WAI50;VDW2151;",
+    "RELEASE": "VDW001020304150;WAI25;VDW1140;",
+    "FIRE 3sec": "SPK1;WAI25;VDW0131;WAI300;VDW0030;WAI50;SPK0;VDW2050;",
+    "ABORT FIRE": "CLR;VDW0030;WAI50;SPK0;VDW2050;",
+    "VENT TANK REGION": "VDW0030;WAI25;VDW11214051;"
+},
+"valves": {
+    "0": "N2O Run",
+    "1": "N2O Vent",
+    "2": "N2O Tank",
+    "3": "Ethane Run",
+    "4": "Ethane Vent",
+    "5": "Ethane Tank"
+},
+"spark": true
+}`};
 
 function App() {
-    const [jsonText, setJsonText] = useState(defaultJson);
-    const validated = JSONToLayout(jsonText);
+    const [jsonLayouts, setJsonLayouts] = useState<Record<string, string>>(defaultLayout);
 
-    return <HashRouter>
-        <Nav title="A&C Control Panel"
-            sidebarItems={[
-                <MenuLink to="/" icon={<IcnCombined />}>Combined</MenuLink>,
-                <MenuLink to="/control" icon={<IcnControl />}>Control only</MenuLink>,
-                <MenuLink to="/telemetry" icon={<IcnTelemetry />}>Telemetry only</MenuLink>,
-                <MenuLink to="/custom" icon={<IcnCustom />}>{validated.kind === "success" && validated.result.name || "Custom"}</MenuLink>,
-            ]}
-            topRight={
-                <Modal trigger={(openModal) => <button className="btn btn-ghost normal-case" onClick={openModal}>Setup</button>}>
-                    <h1 className="mb-3">Insert JSON for a custom ui layout:</h1>
-                    <textarea className="textarea textarea-bordered w-full text-lg font-mono" rows={15} value={jsonText} onChange={e => setJsonText(e.target.value)}></textarea>
-                    <code className="bg-neutral block my-3 relative p-4 pb-8 text-neutral-content rounded-md">
-                        <div className={
-                            cn("badge absolute bottom-3 right-4", validated.kind === "success" ? "badge-success" : "badge-error")
-                        }>
-                            {
-                                validated.kind === "success" ? "valid" : (validated.kind === "syntax" ? "syntax error" : "invalid")
-                            }
-                        </div>
-                        {validated.kind === "success" ? JSON.stringify(validated.result) : validated.error}
-                    </code>
-                </Modal>
-            }>
-            <Routes>
-                <Route path="/combined" element={<Combined />} />
-                <Route path="/" element={<Control />} />
-                <Route path="/telemetry" element={<Telemetry />} />
-                <Route path="/custom" element={<CustomView layout={validated.kind === "success" ? validated.result : null} />} />
-            </Routes>
-        </Nav>
-    </HashRouter >
+    // Start heartbeating, listen for messages, parse them, update state
+    const teensyRenderState = useTeensyStateReceiver();
+
+    return <TeensyContext.Provider value={teensyRenderState}>
+        <LayoutStoreContext.Provider value={{ layouts: jsonLayouts, setLayouts: setJsonLayouts }}>
+            <HashRouter>
+                <Nav title="A&C Control Panel">
+                    <Routes>
+                        <Route path="/" element={<Debug />} />
+                        {/*<Route path="/combined" element={<Combined />} />
+                        <Route path="/telemetry" element={<Telemetry />} />*/}
+                        <Route path="/custom/:name" element={<CustomView />} />
+                    </Routes>
+                </Nav>
+            </HashRouter >
+        </LayoutStoreContext.Provider>
+    </TeensyContext.Provider>
 }
 
 const container = document.getElementById("root");

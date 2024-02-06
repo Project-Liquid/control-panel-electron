@@ -29,7 +29,7 @@ interface SensorProps {
 export function Sensor({ pct, color, readout, label, supLabel, big = false }: SensorProps) {
     return <div className="p-4 flex justify-between items-center">
         <div className="flex flex-col justify-between">
-            <div className="uppercase text-xs text-neutral-content">{supLabel}</div>
+            <div className="uppercase text-xs">{supLabel}</div>
             <div className="text-lg">{label}</div>
         </div>
         {big ?
@@ -57,5 +57,5 @@ interface TempSensorProps {
     name: string,
 }
 export function TempSensor({ deg, name }: TempSensorProps) {
-    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / 500} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg} °C`} label={name} supLabel="Thermometer" />;
+    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / 500} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg} °C`} label={name} supLabel="Thermocouple" />;
 }

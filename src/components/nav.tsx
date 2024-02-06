@@ -1,18 +1,34 @@
-import React, { CSSProperties, ReactNode, useEffect, useState } from 'react';
+import React, { CSSProperties, ReactNode, useContext, useEffect, useState } from 'react';
 import { themeChange } from 'theme-change'
+import SetupModal from './setupModal';
+import { MenuLink } from './MenuLink';
+import { IcnCombined, IcnCustom } from './icons';
+import { LayoutStoreContext } from '../context/jsonLayouts';
+import { BeepDot } from './ui';
+import { TeensyContext } from '../context/teensyContext';
 
 interface NavProps {
     title: string,
     children: ReactNode,
-    sidebarItems: ReactNode[],
-    topRight: ReactNode,
 }
 
-export default function Nav({ title, children, sidebarItems, topRight }: NavProps) {
+export default function Nav({ title, children }: NavProps) {
+    const { layouts } = useContext(LayoutStoreContext);
+
+    const { connected } = useContext(TeensyContext);
+
     const [sidebarOpen, setSidebarOpen] = useState(false);
     useEffect(() => {
         themeChange(false);
     }, []);
+
+    const sidebarItems = [
+        <MenuLink to="/" icon={<IcnCombined />}>Debug</MenuLink>,
+        //<MenuLink to="/control" icon={<IcnControl />}>Control only</MenuLink>,
+        //<MenuLink to="/telemetry" icon={<IcnTelemetry />}>Telemetry only</MenuLink>,
+        //<MenuLink to="/custom" icon={<IcnCustom />}>{validated.kind === "success" && validated.result.name || "Custom"}</MenuLink>,
+        ...(Object.entries(layouts).map(([name]) => <MenuLink to={"/custom/" + name} icon={<IcnCustom />}>{name}</MenuLink>)),
+    ];
 
     return <div className="drawer drawer-end min-h-screen">
         <input type="checkbox" id="sidebar-drawer" className="drawer-toggle" checked={sidebarOpen} readOnly />
@@ -30,8 +46,9 @@ export default function Nav({ title, children, sidebarItems, topRight }: NavProp
                 </div>
                 <div className="navbar-center text-xl">{title}</div>
                 <div className="navbar-end">
+                    <span>{connected ? "Connected" : "Not connected"}<BeepDot state={connected ? "success" : "error"} /></span>
                     <div style={{ "WebkitAppRegion": "no-drag" } as CSSProperties}>
-                        {topRight}
+                        <SetupModal />
                     </div>
                     <div style={{ "WebkitAppRegion": "no-drag" } as CSSProperties}>
                         <button className="btn btn-ghost ml-2" onClick={() => setSidebarOpen(true)}>

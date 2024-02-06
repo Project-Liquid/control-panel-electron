@@ -53,7 +53,7 @@ export class ParsedUdpController {
         this.socket.on("message", (message, remote) => {
             if (remote.address !== TEENSY_IP) {
                 console.log(`WARNING: I received a udp message but not from the expected IP address for the teensy (${TEENSY_IP}). Proceeding anyway.`);
-                // TODO: probably don't proceed if we get unknown origin messages?
+                // TODO: maybe don't proceed if we get unknown origin messages?
             }
             const parsed = parseFromTeensy(message.toString());
             for (const listener of this.listeners) {
@@ -173,8 +173,10 @@ export class UdpController {
         this.socket.on("message", (message, remote) => {
             if (remote.address !== TEENSY_IP) {
                 console.log(`WARNING: I received a udp message but not from the expected IP address for the teensy (${TEENSY_IP}). Proceeding anyway.`);
-                // TODO: probably don't proceed if we get unknown origin messages?
+                // TODO: maybe don't proceed if we get unknown origin messages?
             }
+            // Just assume whoever's talking to us is the teensy (maybe not secure)
+            this.teensyRemoteInfo = remote;
             for (const listener of this.listeners) {
                 listener(message.toString());
             }

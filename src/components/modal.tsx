@@ -1,10 +1,12 @@
 import React, { ReactNode, useRef } from "react";
+import cn from "classnames";
 
 interface ModalProps {
-    children?: ReactNode,
     trigger: (openModal: () => void) => ReactNode,
+    content: (closeModal: () => void) => ReactNode,
+    modalBoxClassName?: string,
 }
-export default function Modal({ children, trigger }: ModalProps) {
+export default function Modal({ trigger, content, modalBoxClassName }: ModalProps) {
     const modalRef = useRef<HTMLDialogElement | null>(null);
     return <>
         {trigger(() => {
@@ -13,8 +15,12 @@ export default function Modal({ children, trigger }: ModalProps) {
             }
         })}
         <dialog className="modal" ref={modalRef}>
-            <div className="modal-box w-11/12 max-w-5xl h-3/4">
-                {children}
+            <div className={cn("modal-box", modalBoxClassName)}>
+                {content(() => {
+                    if (modalRef.current !== null) {
+                        modalRef.current.close();
+                    }
+                })}
             </div>
             <form method="dialog" className="modal-backdrop">
                 <button>close</button>

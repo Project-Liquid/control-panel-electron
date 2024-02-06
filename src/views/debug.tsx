@@ -7,7 +7,7 @@ declare global {
     }
 }
 
-export default function Control() {
+export default function Debug() {
     const [cmd, setCmd] = useState("");
     const [log, setLog] = useState<string[]>([]);
     const logRef = useRef(log);
@@ -28,7 +28,7 @@ export default function Control() {
     }, [])
     return <main className="p-3 m-auto max-w-md">
         <div className="text-primary">Command: </div>
-        <form action="javascript:void(0);">
+        <form>
             <input type="text" className="input input-primary mr-3" value={cmd} onChange={e => setCmd(e.target.value)} />
             <button className="btn" onClick={() => {
                 window.udp.send(cmd);

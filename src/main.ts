@@ -10,6 +10,11 @@ if (require('electron-squirrel-startup')) {
 const udp = new UdpController();
 const processListenerRemovers: Record<number, () => void> = {};
 ipcMain.on("udp-ipcregister", event => {
+  console.log("Adding listener at", event.processId, processListenerRemovers[event.processId]);
+  if (processListenerRemovers[event.processId] != undefined) {
+    // Remove the old listener for this process
+    processListenerRemovers[event.processId]();
+  }
   processListenerRemovers[event.processId] = udp.addListener(message => {
     console.log(processListenerRemovers);
     event.reply("udp-receive", message);

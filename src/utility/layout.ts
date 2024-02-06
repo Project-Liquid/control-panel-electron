@@ -3,28 +3,30 @@ import { z } from "zod";
 type inputType = "pres" | "temp";
 
 export default interface Layout {
-    name?: string,
     inputs?: Record<string, { name: string, type: inputType }>,
+    valves?: Record<string, string>,
+    spark: boolean,
     actions?: Record<string, string>,
     recorder: boolean,
 }
 
-interface LayoutParseResult {
+export interface LayoutParseResult {
     kind: "success",
     result: Layout,
 }
 
-interface LayoutParseError {
+export interface LayoutParseError {
     kind: "syntax" | "validation",
     error: string,
 }
 
 const layoutSchema = z.object({
-    name: z.optional(z.string()),
     inputs: z.optional(z.record(z.object({
         name: z.string(),
         type: z.string().refine(s => ["pres", "temp"].indexOf(s) !== -1),
     }))),
+    valves: z.optional(z.record(z.string())),
+    spark: z.optional(z.boolean()).transform(x => x === undefined ? true : x),
     actions: z.optional(z.record(z.string())),
     recorder: z.optional(z.boolean()).transform(x => x === undefined ? true : x),
 }).strict();
