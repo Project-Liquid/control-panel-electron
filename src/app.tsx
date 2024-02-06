@@ -5,66 +5,60 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 
 // Components
 import Nav from "./components/nav";
-import { IcnCombined, IcnControl, IcnCustom, IcnTelemetry } from "./components/icons";
 
 // Views
-import Combined from "./views/combined";
-import Telemetry from "./views/telemetry";
-import Control from "./views/control";
+import Debug from "./views/debug";
 import CustomView from "./views/customview";
 
 // Utilities
-import { JSONToLayout } from "./utility/layout";
-import SetupModal from "./components/setupModal";
-import { MenuLink } from "./components/MenuLink";
 import { LayoutStoreContext } from "./context/jsonLayouts";
+import { TeensyContext, useTeensyStateReceiver } from "./context/teensyContext";
 
 // JSON start code for the custom ui view
 // TODO: store a record object with many named layout objects
 // TODO: save these using electron-store
-const defaultJson = `{
-"name": "Engine Test 01",
+const defaultLayout = {
+    "Engine Test 01": `{
 "inputs": {
-    "0": {"name": "Ethane tank", "type": "pres"},
-    "1": {"name": "N2O tank", "type": "pres"},
-    "2": {"name": "Ethane run", "type": "pres"},
-    "3": {"name": "N2O run", "type": "pres"},
-    "4": {"name": "Injector", "type": "temp"}
+    "P0": {"name": "N2O inlet", "type": "pres"},
+    "P1": {"name": "N2O tank", "type": "pres"},
+    "P2": {"name": "Ethane tank", "type": "pres"},
+    "P3": {"name": "Ethane inlet run", "type": "pres"},
+    "P4": {"name": "Chamber", "type": "pres"},
+    "T0": {"name": "Thermocouple 0", "type": "temp"},
+    "T1": {"name": "Thermocouple 1", "type": "temp"},
+    "T2": {"name": "Thermocouple 2", "type": "temp"}
 },
 "actions": {
-    "Abort": "ABO",
-    "Seal tanks": "PDW 6:1 7:1",
-    "Run": "PDW 8:1 9:1"
+    "OFF": "VDW001020304050;SPK0;",
+    "ARM": "VDW10410030;WAI50;VDW2151;",
+    "RELEASE": "VDW001020304150;WAI25;VDW1140;",
+    "FIRE 3sec": "SPK1;WAI25;VDW0131;WAI300;VDW0030;WAI50;SPK0;VDW2050;",
+    "ABORT FIRE": "CLR;VDW0030;WAI50;SPK0;VDW2050;",
+    "VENT TANK REGION": "VDW0030;WAI25;VDW11214051;"
 }
-}`;
-
-const jsonLayouts: Record<string, string> = {}
+}`};
 
 function App() {
-    const [jsonText, setJsonText] = useState(defaultJson);
-    const validated = JSONToLayout(jsonText);
+    const [jsonLayouts, setJsonLayouts] = useState<Record<string, string>>(defaultLayout);
 
-    return <LayoutStoreContext.Provider value={{ jsonText: jsonText, setJsonText: setJsonText }}>
-        <HashRouter>
-            <Nav title="A&C Control Panel"
-                sidebarItems={[
-                    <MenuLink to="/" icon={<IcnCombined />}>Combined</MenuLink>,
-                    <MenuLink to="/control" icon={<IcnControl />}>Control only</MenuLink>,
-                    <MenuLink to="/telemetry" icon={<IcnTelemetry />}>Telemetry only</MenuLink>,
-                    <MenuLink to="/custom" icon={<IcnCustom />}>{validated.kind === "success" && validated.result.name || "Custom"}</MenuLink>,
-                ]}
-                topRight={
-                    <SetupModal validated={validated} />
-                }>
-                <Routes>
-                    <Route path="/combined" element={<Combined />} />
-                    <Route path="/" element={<Control />} />
-                    <Route path="/telemetry" element={<Telemetry />} />
-                    <Route path="/custom" element={<CustomView layout={validated.kind === "success" ? validated.result : null} />} />
-                </Routes>
-            </Nav>
-        </HashRouter >
-    </LayoutStoreContext.Provider>
+    // Start heartbeating, listen for messages, parse them, update state
+    const teensyRenderState = useTeensyStateReceiver();
+
+    return <TeensyContext.Provider value={teensyRenderState}>
+        <LayoutStoreContext.Provider value={{ layouts: jsonLayouts, setLayouts: setJsonLayouts }}>
+            <HashRouter>
+                <Nav title="A&C Control Panel">
+                    <Routes>
+                        <Route path="/" element={<Debug />} />
+                        {/*<Route path="/combined" element={<Combined />} />
+                        <Route path="/telemetry" element={<Telemetry />} />*/}
+                        <Route path="/custom/:name" element={<CustomView />} />
+                    </Routes>
+                </Nav>
+            </HashRouter >
+        </LayoutStoreContext.Provider>
+    </TeensyContext.Provider>
 }
 
 const container = document.getElementById("root");

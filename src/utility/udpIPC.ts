@@ -72,6 +72,7 @@ export class UdpIPC {
     ipcRenderer: IpcRenderer;
     listeners: ((message: string) => void)[];
     constructor(ipcRenderer: IpcRenderer) {
+        this.broadcastToListeners = this.broadcastToListeners.bind(this);
         this.send = this.send.bind(this);
         this.startHandshake = this.startHandshake.bind(this);
         this.addListener = this.addListener.bind(this);
@@ -84,13 +85,16 @@ export class UdpIPC {
 
         // Set up to forward incoming messages to listeners
         this.ipcRenderer.on("udp-receive", (_event, message: string) => {
-            for (const listener of this.listeners) {
-                listener(message);
-            }
+            this.broadcastToListeners(message);
         })
 
         // Alert the main process that a udp listener is available on this renderer
         this.ipcRenderer.send("udp-ipcregister");
+    }
+    broadcastToListeners(message: string) {
+        for (const listener of this.listeners) {
+            listener(message);
+        }
     }
     send(message: string) {
         this.ipcRenderer.send("udp-send", message);
