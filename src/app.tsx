@@ -15,7 +15,6 @@ import { LayoutStoreContext } from "./context/jsonLayouts";
 import { TeensyContext, useTeensyStateReceiver } from "./context/teensyContext";
 
 // JSON start code for the custom ui view
-// TODO: store a record object with many named layout objects
 // TODO: save these using electron-store
 const defaultLayout = {
     "Engine Test 01": `{
@@ -36,7 +35,16 @@ const defaultLayout = {
     "FIRE 3sec": "SPK1;WAI25;VDW0131;WAI300;VDW0030;WAI50;SPK0;VDW2050;",
     "ABORT FIRE": "CLR;VDW0030;WAI50;SPK0;VDW2050;",
     "VENT TANK REGION": "VDW0030;WAI25;VDW11214051;"
-}
+},
+"valves": {
+    "0": "N2O Run",
+    "1": "N2O Vent",
+    "2": "N2O Tank",
+    "3": "Ethane Run",
+    "4": "Ethane Vent",
+    "5": "Ethane Tank"
+},
+"spark": true
 }`};
 
 function App() {

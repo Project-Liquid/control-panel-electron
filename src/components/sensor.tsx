@@ -57,5 +57,5 @@ interface TempSensorProps {
     name: string,
 }
 export function TempSensor({ deg, name }: TempSensorProps) {
-    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / 500} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg} °C`} label={name} supLabel="Thermometer" />;
+    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / 500} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg} °C`} label={name} supLabel="Thermocouple" />;
 }

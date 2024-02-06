@@ -2,8 +2,6 @@ import React, { ReactNode, useContext, useState } from "react";
 import Modal from "./modal";
 import { LayoutStoreContext } from "../context/jsonLayouts";
 
-// TODO: setup modal stores its own json text, then puts this into context
-// TODO: button to apply changes
 interface NewLayoutModalProps {
     trigger: (openModal: () => void) => ReactNode,
     onCreated?: (newName: string) => void,

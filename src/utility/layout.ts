@@ -5,6 +5,7 @@ type inputType = "pres" | "temp";
 export default interface Layout {
     inputs?: Record<string, { name: string, type: inputType }>,
     valves?: Record<string, string>,
+    spark: boolean,
     actions?: Record<string, string>,
     recorder: boolean,
 }
@@ -25,6 +26,7 @@ const layoutSchema = z.object({
         type: z.string().refine(s => ["pres", "temp"].indexOf(s) !== -1),
     }))),
     valves: z.optional(z.record(z.string())),
+    spark: z.optional(z.boolean()).transform(x => x === undefined ? true : x),
     actions: z.optional(z.record(z.string())),
     recorder: z.optional(z.boolean()).transform(x => x === undefined ? true : x),
 }).strict();
