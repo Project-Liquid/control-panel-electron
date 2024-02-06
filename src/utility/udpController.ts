@@ -175,6 +175,8 @@ export class UdpController {
                 console.log(`WARNING: I received a udp message but not from the expected IP address for the teensy (${TEENSY_IP}). Proceeding anyway.`);
                 // TODO: maybe don't proceed if we get unknown origin messages?
             }
+            // Just assume whoever's talking to us is the teensy (maybe not secure)
+            this.teensyRemoteInfo = remote;
             for (const listener of this.listeners) {
                 listener(message.toString());
             }
