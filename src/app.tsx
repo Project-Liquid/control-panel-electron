@@ -17,7 +17,7 @@ import { TeensyContext, useTeensyStateReceiver } from "./context/teensyContext";
 // JSON start code for the custom ui view
 // TODO: save these using electron-store
 const defaultLayout = {
-    "Engine Test 01": `{
+    "ASI Test 01": `{
 "inputs": {
     "P0": {"name": "N2O inlet", "type": "pres"},
     "P1": {"name": "N2O tank", "type": "pres"},
