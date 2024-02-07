@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { JSONToLayout } from "../utility/layout";
 import { PressureSensor, TempSensor } from "../components/sensor";
 import { IcnRecord, IcnSpark } from "../components/icons";

@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { UdpIPC } from "../utility/udpIPC";
+import { FileStore } from "../utility/filestore";
 
 declare global {
     interface Window {
-        udp: UdpIPC
+        udp: UdpIPC,
+        store: FileStore,
     }
 }
 
@@ -29,6 +31,34 @@ export const TeensyContext = React.createContext<{
 
 const LOS_HEARTBEATS = 3;
 const HEARTBEAT_MILLIS = 500;
+const MESSAGE_LOG_BUFSIZE = 100;
+
+export function useMessageLog() {
+    const messageLog = useRef<string[]>([]);
+
+    const flushMessages = () => {
+        let newMessageLog: string[] | null = window.store.get("messageLog");
+        if (newMessageLog === null) {
+            newMessageLog = messageLog.current;
+        } else {
+            newMessageLog.push(...messageLog.current);
+        }
+        window.store.set("messageLog", newMessageLog);
+        messageLog.current = [];
+    };
+
+    const recordMessage = (message: string) => {
+        messageLog.current.push(message);
+
+        if (messageLog.current.length > MESSAGE_LOG_BUFSIZE) {
+            flushMessages();
+        }
+    };
+
+    return {
+        recordMessage, flushMessages,
+    }
+}
 
 export function useTeensyStateReceiver() {
     // Teensy connection state for render purposes
@@ -56,9 +86,13 @@ export function useTeensyStateReceiver() {
     const [inputs, setInputs] = useState<Record<string, string>>({});
     const [valves, setValves] = useState<Record<string, string>>({});
     const [spark, setSpark] = useState(false);
+
+    const { recordMessage, flushMessages } = useMessageLog();
+
     const udpSend = (message: string) => {
         if (teensyStateModel.current.recording) {
             // TODO: write the message to a file
+            recordMessage(message);
             console.log("RECORDING-out:", message);
         }
         // Actually send message over udp
@@ -88,17 +122,20 @@ export function useTeensyStateReceiver() {
 
             if (teensyStateModel.current.recording) {
                 // TODO: write the message to a file
+                recordMessage(message);
                 console.log("RECORDING-in:", message);
             }
 
             const code = message.slice(0, 3);
             if (code === "VDW") {
+                console.log("VDW received");
                 for (let i = 3; i < message.length; i += 2) {
                     if (message.length - i >= 2) {
                         teensyStateModel.current.valves[message[i]] = message[i + 1];
                     }
                 }
-                setValves(teensyStateModel.current.valves);
+                console.log("calling setValves");
+                setValves({ ...teensyStateModel.current.valves });
             } else if (code === "SPK") {
                 if (message.length >= 4) {
                     teensyStateModel.current.spark = (message[3] == "1");
@@ -127,13 +164,16 @@ export function useTeensyStateReceiver() {
                         }
                     }
                 }
-                setInputs(teensyStateModel.current.inputs);
+                setInputs({ ...teensyStateModel.current.inputs });
             }
         });
     }, []); // Never rerun this - it shouldn't ever rely on the render state, just refs
     return {
         connected, inputs, valves, spark, udpSend, recording,
         setRecording: (v: boolean) => {
+            if (v === false) {
+                flushMessages();
+            }
             teensyStateModel.current.recording = v;
             setRecording(v);
         }

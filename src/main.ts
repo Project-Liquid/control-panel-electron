@@ -1,11 +1,22 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { UdpController } from './utility/udpController';
+import Store from "electron-store";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
+
+// Electron store initialize for renderer
+const store = new Store();
+console.log(app.getPath('userData'));
+ipcMain.on("store-set", (_event, key: string, value: unknown) => {
+  store.set(key, value);
+});
+ipcMain.on("store-get", (event, key: string) => {
+  event.returnValue = store.get(key, null);
+});
 
 const udp = new UdpController();
 const processListenerRemovers: Record<number, () => void> = {};
@@ -16,7 +27,7 @@ ipcMain.on("udp-ipcregister", event => {
     processListenerRemovers[event.processId]();
   }
   processListenerRemovers[event.processId] = udp.addListener(message => {
-    console.log(processListenerRemovers);
+    //console.log(processListenerRemovers);
     event.reply("udp-receive", message);
   });
 });
@@ -34,7 +45,7 @@ ipcMain.on("udp-get-computer-info", event => {
 ipcMain.on("udp-get-teensy-info", event => {
   event.returnValue = udp.teensyRemoteInfo;
 });
-udp.addListener(console.log);
+//udp.addListener(console.log);
 //setTimeout(() => {
 //  udp.socket.emit("message", Buffer.from("HSK"), {
 //    address: "169.254.44.72",

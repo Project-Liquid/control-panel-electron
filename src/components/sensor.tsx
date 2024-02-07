@@ -37,7 +37,7 @@ export function Sensor({ pct, color, readout, label, supLabel, big = false }: Se
                 <span className="text-base-content">{readout}</span>
             </div> :
             <div>
-                <span className="text-base-content mr-3 text-lg">{readout}</span>
+                <span className="text-base-content mr-3 text-lg font-mono">{readout}</span>
                 <div className="radial-progress border-4 border-base-200" style={{ "--value": pct, "--size": "3rem", "color": color, "--thickness": "0.4rem" } as CSSProperties} />
             </div>
         }
@@ -49,7 +49,7 @@ interface PressureSensorProps {
     name: string,
 }
 export function PressureSensor({ psi, name }: PressureSensorProps) {
-    return <Sensor pct={isNaN(psi) ? 100 : 100 * psi / 1000} color={isNaN(psi) ? ERR_COL : pressureColorMap(psi)} readout={isNaN(psi) ? "ERR" : `${psi} psi`} label={name} supLabel="Pressure Transducer" />;
+    return <Sensor pct={isNaN(psi) ? 100 : 100 * psi / 1000} color={isNaN(psi) ? ERR_COL : pressureColorMap(psi)} readout={isNaN(psi) ? "ERR" : `${psi.toFixed(2)} psi`} label={name} supLabel="Pressure Transducer" />;
 }
 
 interface TempSensorProps {
@@ -57,5 +57,5 @@ interface TempSensorProps {
     name: string,
 }
 export function TempSensor({ deg, name }: TempSensorProps) {
-    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / 500} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg} °C`} label={name} supLabel="Thermocouple" />;
+    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / 500} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg.toFixed(2)} °C`} label={name} supLabel="Thermocouple" />;
 }
