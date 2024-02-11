@@ -6,10 +6,13 @@ declare global {
     interface Window {
         udp: UdpIPC,
         store: FileStore,
+        openFileDialog: (cb: (filePaths: string[]) => void) => void,
+        newTimestampedFile: (dirname: string, cb: (filename: string) => void) => void,
+        appendFile: (filepath: string, data: string) => void,
     }
 }
 
-export const TeensyContext = React.createContext<{
+interface TeensyContextInterface {
     connected: boolean,
     inputs: Record<string, string>,
     valves: Record<string, string>,
@@ -17,7 +20,10 @@ export const TeensyContext = React.createContext<{
     udpSend: (command: string) => void,
     recording: boolean,
     setRecording: (v: boolean) => void,
-}>({
+    chooseRecordingDirectory: () => void,
+}
+
+export const TeensyContext = React.createContext<TeensyContextInterface>({
     connected: false,
     inputs: {},
     valves: {},
@@ -27,6 +33,8 @@ export const TeensyContext = React.createContext<{
     recording: false,
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     setRecording: () => { },
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    chooseRecordingDirectory: () => { },
 });
 
 const LOS_HEARTBEATS = 3;
@@ -35,20 +43,24 @@ const MESSAGE_LOG_BUFSIZE = 100;
 
 export function useMessageLog() {
     const messageLog = useRef<string[]>([]);
+    const recordingFile = useRef("");
 
     const flushMessages = () => {
-        let newMessageLog: string[] | null = window.store.get("messageLog");
-        if (newMessageLog === null) {
-            newMessageLog = messageLog.current;
-        } else {
-            newMessageLog.push(...messageLog.current);
-        }
-        window.store.set("messageLog", newMessageLog);
+        console.log("flushMessages", recordingFile.current);
+        window.appendFile(recordingFile.current, messageLog.current.join("\n"));
+        //let newMessageLog: string[] | null = window.store.get("messageLog");
+        //if (newMessageLog === null) {
+        //    newMessageLog = messageLog.current;
+        //} else {
+        //    newMessageLog.push(...messageLog.current);
+        //}
+        //window.store.set("messageLog", newMessageLog);
         messageLog.current = [];
     };
 
     const recordMessage = (message: string) => {
-        messageLog.current.push(message);
+        const now = new Date();
+        messageLog.current.push(`${now.getHours()}.${now.getMinutes()}.${now.getSeconds()}.${now.getMilliseconds()}, ${message}`);
 
         if (messageLog.current.length > MESSAGE_LOG_BUFSIZE) {
             flushMessages();
@@ -56,16 +68,17 @@ export function useMessageLog() {
     };
 
     return {
-        recordMessage, flushMessages,
+        recordMessage, flushMessages, recordingFile
     }
 }
 
-export function useTeensyStateReceiver() {
+export function useTeensyStateReceiver(): TeensyContextInterface {
     // Teensy connection state for render purposes
     const [connected, setConnected] = useState(false);
 
     // Whether we are recording a log
     const [recording, setRecording] = useState(false);
+    const recordingDirectory = useRef("");
 
     // This tracks most recent state to be used in the udp listener
     // If these were useState and not refs, we'd need to reregister the listener on almost every message
@@ -87,13 +100,13 @@ export function useTeensyStateReceiver() {
     const [valves, setValves] = useState<Record<string, string>>({});
     const [spark, setSpark] = useState(false);
 
-    const { recordMessage, flushMessages } = useMessageLog();
+    const { recordMessage, flushMessages, recordingFile } = useMessageLog();
 
     const udpSend = (message: string) => {
         if (teensyStateModel.current.recording) {
             // TODO: write the message to a file
-            recordMessage(message);
-            console.log("RECORDING-out:", message);
+            recordMessage("g, " + message);
+            console.log("g, ", message);
         }
         // Actually send message over udp
         window.udp.send(message);
@@ -122,8 +135,8 @@ export function useTeensyStateReceiver() {
 
             if (teensyStateModel.current.recording) {
                 // TODO: write the message to a file
-                recordMessage(message);
-                console.log("RECORDING-in:", message);
+                recordMessage("t, " + message);
+                console.log("t, ", message);
             }
 
             const code = message.slice(0, 3);
@@ -173,9 +186,24 @@ export function useTeensyStateReceiver() {
         setRecording: (v: boolean) => {
             if (v === false) {
                 flushMessages();
+            } else {
+                if (recordingDirectory.current == "") {
+                    alert("No directory selected!");
+                    return;
+                } else {
+                    window.newTimestampedFile(recordingDirectory.current, filename => {
+                        recordingFile.current = filename;
+                    });
+                }
             }
             teensyStateModel.current.recording = v;
             setRecording(v);
-        }
+        },
+        chooseRecordingDirectory: () => window.openFileDialog(filePaths => {
+            if (filePaths.length > 0) {
+                recordingDirectory.current = filePaths[0];
+                console.log(recordingDirectory.current);
+            }
+        }),
     };
 }

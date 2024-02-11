@@ -5,9 +5,11 @@ import Modal from "./modal";
 import { JSONToLayout } from "../utility/layout";
 import { LayoutStoreContext } from "../context/jsonLayouts";
 import { NewLayoutModal } from "./NewLayoutModal";
+import { TeensyContext } from "../context/teensyContext";
 
 export default function SetupModal() {
     const { layouts, setLayouts } = useContext(LayoutStoreContext);
+    const { chooseRecordingDirectory } = useContext(TeensyContext);
     const [jsonText, setJsonText] = useState("");
     const validated = JSONToLayout(jsonText);
     const [layoutName, setLayoutName] = useState("");
@@ -26,15 +28,16 @@ export default function SetupModal() {
             closeModal => <>
                 <div className="h-full flex flex-col justify-between">
                     <div>
-                        <div className="mb-5">
-                            <h1 className="inline mr-5">Insert JSON for a custom ui layout:</h1>
-                            <select className="inline mr-5 select select-bordered w-full max-w-xs" value={layoutName} onChange={(e) => setLayoutName(e.target.value)}>
+                        <div className="mb-5 space-x-5">
+                            <h1 className="inline">Insert JSON for a custom ui layout:</h1>
+                            <select className="inline select select-bordered w-full max-w-xs" value={layoutName} onChange={(e) => setLayoutName(e.target.value)}>
                                 <option disabled value="">Layout name:</option>
                                 {Object.entries(layouts).map(([name]) => <option value={name} key={name}>{name}</option>)}
                             </select>
                             <NewLayoutModal trigger={
                                 openModal => <button className="btn btn-neutral" onClick={openModal}>New layout</button>
                             } onCreated={newName => setLayoutName(newName)} />
+                            <button className="btn btn-neutral" onClick={() => chooseRecordingDirectory()}>Choose File</button>
                         </div>
                         <div className="w-full flex flex-row space-x-3">
                             <textarea className="basis-2/3 textarea textarea-bordered text-lg font-mono" rows={12} value={jsonText} onChange={e => setJsonText(e.target.value)} disabled={layoutName == ""} placeholder={layoutName == "" ? "No layout selected" : ""}></textarea>
