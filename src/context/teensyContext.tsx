@@ -37,8 +37,8 @@ export const TeensyContext = React.createContext<TeensyContextInterface>({
     chooseRecordingDirectory: () => { },
 });
 
-const LOS_HEARTBEATS = 3;
-const HEARTBEAT_MILLIS = 500;
+const LOS_HEARTBEATS = 2;
+const HEARTBEAT_MILLIS = 250;
 const MESSAGE_LOG_BUFSIZE = 100;
 
 export function useMessageLog() {
