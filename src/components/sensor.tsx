@@ -8,8 +8,11 @@ import React, { CSSProperties } from "react";
 //    console.log(value, param, param * 240);
 //    return `hsl(${param * 240}, 100%, 40%)`;
 //};
+
+const PRES_CEIL = 100;
+
 const pressureColorMap = (value: number) => {
-    return `hsl(${(1 - value / 1000) * 240}, 100%, 40%)`;
+    return `hsl(${(1 - value / PRES_CEIL) * 240}, 100%, 40%)`;
 }
 
 const tempColorMap = (value: number) => {
@@ -49,7 +52,7 @@ interface PressureSensorProps {
     name: string,
 }
 export function PressureSensor({ psi, name }: PressureSensorProps) {
-    return <Sensor pct={isNaN(psi) ? 100 : 100 * psi / 1000} color={isNaN(psi) ? ERR_COL : pressureColorMap(psi)} readout={isNaN(psi) ? "ERR" : `${psi.toFixed(2)} psi`} label={name} supLabel="Pressure Transducer" />;
+    return <Sensor pct={isNaN(psi) ? 100 : 100 * psi / PRES_CEIL} color={isNaN(psi) ? ERR_COL : pressureColorMap(psi)} readout={isNaN(psi) ? "ERR" : `${psi.toFixed(2)} psi`} label={name} supLabel="Pressure Transducer" />;
 }
 
 interface TempSensorProps {
