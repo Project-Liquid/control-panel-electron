@@ -46,7 +46,7 @@ export function useMessageLog() {
     const recordingFile = useRef("");
 
     const flushMessages = () => {
-        console.log("flushMessages", recordingFile.current);
+        //console.log("flushMessages", recordingFile.current);
         window.appendFile(recordingFile.current, messageLog.current.join("\n"));
         //let newMessageLog: string[] | null = window.store.get("messageLog");
         //if (newMessageLog === null) {
@@ -136,18 +136,18 @@ export function useTeensyStateReceiver(): TeensyContextInterface {
             if (teensyStateModel.current.recording) {
                 // TODO: write the message to a file
                 recordMessage("t, " + message);
-                console.log("t, ", message);
+                //console.log("t, ", message);
             }
 
             const code = message.slice(0, 3);
             if (code === "VDW") {
-                console.log("VDW received");
+                //console.log("VDW received");
                 for (let i = 3; i < message.length; i += 2) {
                     if (message.length - i >= 2) {
                         teensyStateModel.current.valves[message[i]] = message[i + 1];
                     }
                 }
-                console.log("calling setValves");
+                //console.log("calling setValves");
                 setValves({ ...teensyStateModel.current.valves });
             } else if (code === "SPK") {
                 if (message.length >= 4) {
