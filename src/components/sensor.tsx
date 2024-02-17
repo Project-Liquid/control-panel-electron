@@ -9,14 +9,15 @@ import React, { CSSProperties } from "react";
 //    return `hsl(${param * 240}, 100%, 40%)`;
 //};
 
-const PRES_CEIL = 100;
+const PRES_CEIL = 1100;
+const TEMP_CEIL = 500;
 
 const pressureColorMap = (value: number) => {
     return `hsl(${(1 - value / PRES_CEIL) * 240}, 100%, 40%)`;
 }
 
 const tempColorMap = (value: number) => {
-    return `hsl(${(1 - Math.min(value, 200) / 200) * 240}, 100%, 40%)`;
+    return `hsl(${(1 - Math.min(value, TEMP_CEIL) / TEMP_CEIL) * 240}, 100%, 40%)`;
 }
 
 const ERR_COL = "hsl(-50, 100%, 40%)";
@@ -60,5 +61,5 @@ interface TempSensorProps {
     name: string,
 }
 export function TempSensor({ deg, name }: TempSensorProps) {
-    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / 500} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg.toFixed(2)} °C`} label={name} supLabel="Thermocouple" />;
+    return <Sensor pct={isNaN(deg) ? 100 : 100 * deg / TEMP_CEIL} color={isNaN(deg) ? ERR_COL : tempColorMap(deg)} readout={isNaN(deg) ? "ERR" : `${deg.toFixed(2)} °C`} label={name} supLabel="Thermocouple" />;
 }
