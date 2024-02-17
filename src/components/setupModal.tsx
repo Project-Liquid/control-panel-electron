@@ -54,16 +54,27 @@ export default function SetupModal() {
                         </div>
                     </div>
 
-                    <div>
-                        <button className={cn("btn mr-2", (validated.kind === "success" && layouts[layoutName] != jsonText) ? "btn-primary" : "btn-disabled")} onClick={() => {
-                            // If the current jsonText is valid, create a new layouts object and store the new text
-                            if (validated.kind === "success") {
+                    <div className="flex justify-between">
+                        <div className="space-x-2">
+                            <button className={cn("btn", (validated.kind === "success" && layouts[layoutName] != jsonText) ? "btn-primary" : "btn-disabled")} onClick={() => {
+                                // If the current jsonText is valid, create a new layouts object and store the new text
+                                if (validated.kind === "success") {
+                                    const newLayouts = { ...layouts };
+                                    newLayouts[layoutName] = jsonText;
+                                    setLayouts(newLayouts);
+                                }
+                            }}>{(layouts[layoutName] == jsonText) ? "Saved" : "Save"}</button>
+                            <button className="btn btn-neutral" onClick={closeModal}>Close</button>
+                        </div>
+                        <button className={cn("btn", (layoutName === "") ? "btn-disabled" : "btn-error")} onClick={() => {
+                            if (layoutName !== "") {
                                 const newLayouts = { ...layouts };
-                                newLayouts[layoutName] = jsonText;
+                                delete newLayouts[layoutName];
                                 setLayouts(newLayouts);
+                                setLayoutName("");
                             }
-                        }}>{(layouts[layoutName] == jsonText) ? "Saved" : "Save"}</button>
-                        <button className="btn btn-neutral" onClick={closeModal}>Close</button>
+
+                        }}>Delete layout</button>
                     </div>
                 </div>
             </>

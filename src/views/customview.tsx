@@ -15,7 +15,7 @@ export default function CustomView() {
     const layout = (validated && validated.kind == "success") ? validated.result : null;
 
     return <main className="min-h-full flex items-stretch">
-        {!layout && <div className="m-auto max-w-xl">No custom layout has been defined</div>}
+        {!layout && <div className="m-auto max-w-xl">Layout "{name}" does not exist. Choose an existing layout from the menu or click "edit" to create a new one.</div>}
         {
             layout && <>
                 {(layout.recorder || layout.spark) && <div className="flex-0 px-5 border-r-2 border-neutral-content flex flex-col items-center space-y-3">
