@@ -162,7 +162,7 @@ export class UdpController {
         this.socket.bind(TEENSY_UDP_PORT, undefined, () => console.log("Socket bind successful!"));
     }
     send(message: string) {
-        console.log("udpController: socket.send(", message, TEENSY_UDP_PORT, TEENSY_IP, ")");
+        //console.log("udpController: socket.send(", message, TEENSY_UDP_PORT, TEENSY_IP, ")");
         this.socket.send(message, TEENSY_UDP_PORT, TEENSY_IP);
     }
     startReceiving() {

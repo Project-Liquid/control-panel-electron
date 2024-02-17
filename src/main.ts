@@ -1,11 +1,55 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import path from 'path';
 import { UdpController } from './utility/udpController';
+import Store from "electron-store";
+import fs from "fs";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
+
+// Electron store initialize for renderer
+const store = new Store();
+console.log(app.getPath('userData'));
+ipcMain.on("store-set", (_event, key: string, value: unknown) => {
+  store.set(key, value);
+});
+ipcMain.on("store-get", (event, key: string) => {
+  event.returnValue = store.get(key, null);
+});
+
+// File dialog opening
+ipcMain.on("open-file-dialog", event => {
+  dialog.showOpenDialog({
+    properties: ["openDirectory", "createDirectory"],
+  }).then(result => {
+    if (!result.canceled) {
+      event.reply("file-selected", result.filePaths);
+    }
+  }).catch(console.log);
+});
+
+// Create new timestamped file
+ipcMain.on("new-timestamped-file", (event, dirname) => {
+  const now = new Date();
+  const newFileName = path.join(dirname, `${now.toISOString()}.txt`);
+  fs.writeFile(newFileName, '', (err) => {
+    if (err) {
+      console.error('Error creating file:', err);
+      return;
+    } else {
+      event.reply("new-timestamped-file", newFileName);
+    }
+  });
+})
+
+ipcMain.on("append-file", (event, filepath, data) => {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  fs.appendFile(filepath, data, (err) => {
+    console.log("appendFile ", filepath, data, err);
+  });
+})
 
 const udp = new UdpController();
 const processListenerRemovers: Record<number, () => void> = {};
@@ -16,7 +60,7 @@ ipcMain.on("udp-ipcregister", event => {
     processListenerRemovers[event.processId]();
   }
   processListenerRemovers[event.processId] = udp.addListener(message => {
-    console.log(processListenerRemovers);
+    //console.log(processListenerRemovers);
     event.reply("udp-receive", message);
   });
 });
@@ -34,7 +78,7 @@ ipcMain.on("udp-get-computer-info", event => {
 ipcMain.on("udp-get-teensy-info", event => {
   event.returnValue = udp.teensyRemoteInfo;
 });
-udp.addListener(console.log);
+//udp.addListener(console.log);
 //setTimeout(() => {
 //  udp.socket.emit("message", Buffer.from("HSK"), {
 //    address: "169.254.44.72",
