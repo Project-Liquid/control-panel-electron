@@ -22,4 +22,4 @@
 
 ### Miscellaneous issues
 
-This project uses platform-specific dependencies, so some things (like running from WSL) are buggy. In these cases, try installing platform-specific dependencies (e.g., `@esbuild/linux_x64`). For further support, contact nathan.abebe@yale.edu.
+This project uses platform-specific dependencies, so some things (like running from WSL) are buggy. In these cases, try installing platform-specific dependencies (e.g., `@esbuild/linux_x64`). If you have a mac, go into `package.json` and delete the dependencies associated with linux; npm should install all mac-required packages itself on `npm install`. Should be similar with windows.
